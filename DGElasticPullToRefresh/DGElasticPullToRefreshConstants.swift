@@ -33,6 +33,7 @@ public struct DGElasticPullToRefreshConstants {
         static let ContentInset = "contentInset"
         static let Frame = "frame"
         static let PanGestureRecognizerState = "panGestureRecognizer.state"
+        static let LoadingViewPanGestureRecognizerState = "panGestureRecognizerState"
     }
     
     public static var WaveMaxHeight: CGFloat = 70.0

@@ -87,7 +87,7 @@ public extension UIScrollView {
         static var pullToRefreshView = "pullToRefreshView"
     }
 
-    fileprivate var pullToRefreshView: DGElasticPullToRefreshView? {
+    fileprivate(set) var pullToRefreshView: DGElasticPullToRefreshView? {
         get {
             return objc_getAssociatedObject(self, &dg_associatedKeys.pullToRefreshView) as? DGElasticPullToRefreshView
         }
@@ -124,6 +124,10 @@ public extension UIScrollView {
     
     public func dg_setPullToRefreshFillColor(_ color: UIColor) {
         pullToRefreshView?.fillColor = color
+    }
+    
+    public func dg_setPullToRefreshFillColors(_ colors: [UIColor]) {
+        pullToRefreshView?.fillColors = colors
     }
     
     public func dg_stopLoading() {

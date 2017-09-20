@@ -34,13 +34,14 @@ class ViewController: UIViewController {
         view.addSubview(tableView)
         
         let loadingView = DGElasticPullToRefreshLoadingViewCircle()
-        loadingView.tintColor = UIColor(red: 78/255.0, green: 221/255.0, blue: 200/255.0, alpha: 1.0)
+        loadingView.tintColor = UIColor.white
         tableView.dg_addPullToRefreshWithActionHandler({ [weak self] () -> Void in
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(1.5 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC), execute: {
                 self?.tableView.dg_stopLoading()
             })
-        }, loadingView: loadingView)
-        tableView.dg_setPullToRefreshFillColor(UIColor(red: 57/255.0, green: 67/255.0, blue: 89/255.0, alpha: 1.0))
+            }, loadingView: loadingView)
+//        tableView.dg_setPullToRefreshFillColor(UIColor.orangePink)
+        tableView.dg_setPullToRefreshFillColors([UIColor.orangePink, UIColor.orange1])
         tableView.dg_setPullToRefreshBackgroundColor(tableView.backgroundColor!)
     }
     
@@ -48,6 +49,18 @@ class ViewController: UIViewController {
         tableView.dg_removePullToRefresh()
     }
     
+}
+
+extension UIColor {
+    /**
+     根据rgb值直接返回uicolor
+     参数值要在0-255之间
+     */
+    convenience init(r:Int,g:Int,b:Int){
+        self.init(red:CGFloat(r)/255.0, green:CGFloat(g)/255.0, blue: CGFloat(b)/255.0, alpha: 1.0)
+    }
+    class var orangePink: UIColor { return UIColor(r: 255, g: 106, b: 91) }
+    class var orange1: UIColor { return UIColor(r: 255, g: 213, b: 171) }
 }
 
 // MARK: -

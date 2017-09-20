@@ -30,6 +30,10 @@ open class DGElasticPullToRefreshLoadingView: UIView {
     
     // MARK: -
     // MARK: Vars
+    public var isDragging: Bool?
+    public dynamic var isLoading: Bool = false
+    public var panGestureRecognizerX: CGFloat?
+    public var panGestureRecognizerState: UIGestureRecognizerState?
     
     lazy var maskLayer: CAShapeLayer = {
         let maskLayer = CAShapeLayer()

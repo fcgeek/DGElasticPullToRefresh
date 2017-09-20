@@ -56,13 +56,14 @@ open class DGElasticPullToRefreshView: UIView {
         set {
             let previousValue = state
             _state = newValue
-            
             if previousValue == .dragging && newValue == .animatingBounce {
+                loadingView?.isLoading = true
                 loadingView?.startAnimating()
                 animateBounce()
             } else if newValue == .loading && actionHandler != nil {
                 actionHandler()
             } else if newValue == .animatingToStopped {
+                loadingView?.isLoading = false
                 resetScrollViewContentInset(shouldAddObserverWhenFinished: true, animated: true, completion: { [weak self] () -> () in self?.state = .stopped })
             } else if newValue == .stopped {
                 loadingView?.stopLoading()
@@ -72,6 +73,7 @@ open class DGElasticPullToRefreshView: UIView {
     
     fileprivate var originalContentInsetTop: CGFloat = 0.0 { didSet { layoutSubviews() } }
     fileprivate let shapeLayer = CAShapeLayer()
+    fileprivate let gradientLayer = CAGradientLayer()
     
     fileprivate var displayLink: CADisplayLink!
     
@@ -94,16 +96,33 @@ open class DGElasticPullToRefreshView: UIView {
                 scrollView.dg_addObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.ContentInset)
                 scrollView.dg_addObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.Frame)
                 scrollView.dg_addObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.PanGestureRecognizerState)
+                loadingView?.dg_addObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.LoadingViewPanGestureRecognizerState)
             } else {
                 scrollView.dg_removeObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.ContentOffset)
                 scrollView.dg_removeObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.ContentInset)
                 scrollView.dg_removeObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.Frame)
                 scrollView.dg_removeObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.PanGestureRecognizerState)
+                loadingView?.dg_removeObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.LoadingViewPanGestureRecognizerState)
             }
         }
     }
     
-    var fillColor: UIColor = .clear { didSet { shapeLayer.fillColor = fillColor.cgColor } }
+    var fillColor: UIColor = .clear {
+        didSet {
+            shapeLayer.fillColor = fillColor.cgColor
+            gradientLayer.removeFromSuperlayer()
+            layer.insertSublayer(shapeLayer, at: 0)
+        }
+    }
+    
+    var fillColors: [UIColor] = [.clear] {
+        didSet {
+            shapeLayer.removeFromSuperlayer()
+            gradientLayer.mask = shapeLayer
+            gradientLayer.colors = fillColors.map { $0.cgColor }
+            layer.insertSublayer(gradientLayer, at: 0)
+        }
+    }
     
     // MARK: Views
     
@@ -131,6 +150,12 @@ open class DGElasticPullToRefreshView: UIView {
         shapeLayer.fillColor = UIColor.black.cgColor
         shapeLayer.actions = ["path" : NSNull(), "position" : NSNull(), "bounds" : NSNull()]
         layer.addSublayer(shapeLayer)
+        
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        gradientLayer.locations = [0, 1]
+        gradientLayer.actions = ["position" : NSNull(), "bounds" : NSNull()]
+        layer.addSublayer(gradientLayer)
         
         addSubview(bounceAnimationHelperView)
         addSubview(cControlPointView)
@@ -172,7 +197,7 @@ open class DGElasticPullToRefreshView: UIView {
                 if state.isAnyOf([.loading, .animatingToStopped]) && newContentOffsetY < -scrollView.contentInset.top {
                     scrollView.contentOffset.y = -scrollView.contentInset.top
                 } else {
-                    scrollViewDidChangeContentOffset(dragging: scrollView.isDragging)
+                    scrollViewDidChangeContentOffset(dragging: loadingView?.isDragging ?? scrollView.isDragging)
                 }
                 layoutSubviews()
             }
@@ -184,9 +209,15 @@ open class DGElasticPullToRefreshView: UIView {
         } else if keyPath == DGElasticPullToRefreshConstants.KeyPaths.Frame {
             layoutSubviews()
         } else if keyPath == DGElasticPullToRefreshConstants.KeyPaths.PanGestureRecognizerState {
-            if let gestureState = scrollView()?.panGestureRecognizer.state, gestureState.dg_isAnyOf([.ended, .cancelled, .failed]) {
+            if let gestureState = scrollView()?.panGestureRecognizer.state,
+                gestureState.dg_isAnyOf([.ended, .cancelled, .failed]) {
                 scrollViewDidChangeContentOffset(dragging: false)
             }
+        } else if keyPath == DGElasticPullToRefreshConstants.KeyPaths.LoadingViewPanGestureRecognizerState,
+            let gestureState = loadingView?.panGestureRecognizerState,
+            gestureState.dg_isAnyOf([.ended, .cancelled, .failed]) {
+            scrollViewDidChangeContentOffset(dragging: false)
+            
         }
     }
 
@@ -282,7 +313,6 @@ open class DGElasticPullToRefreshView: UIView {
         }
         
         scrollView.dg_removeObserver(self, forKeyPath: DGElasticPullToRefreshConstants.KeyPaths.ContentInset)
-        
         let animationBlock = { scrollView.contentInset = contentInset }
         let completionBlock = { () -> Void in
             if shouldAddObserverWhenFinished && self.observing {
@@ -373,6 +403,9 @@ open class DGElasticPullToRefreshView: UIView {
         }
     
         shapeLayer.frame = CGRect(x: 0.0, y: 0.0, width: width, height: height)
+        if height != 0 {
+            gradientLayer.frame = shapeLayer.frame
+        }
         shapeLayer.path = currentPath()
         
         layoutLoadingView()
@@ -412,7 +445,13 @@ open class DGElasticPullToRefreshView: UIView {
                 r2ControlPointView.center = CGPoint(x: width, y: height)
                 r3ControlPointView.center = CGPoint(x: width, y: height)
             } else {
-                let locationX = scrollView.panGestureRecognizer.location(in: scrollView).x
+                var locationX: CGFloat = 0
+                if let x = loadingView?.panGestureRecognizerX {
+                    locationX = x
+                    
+                } else {
+                    locationX = scrollView.panGestureRecognizer.location(in: scrollView).x
+                }
                 
                 let waveHeight = currentWaveHeight()
                 let baseHeight = bounds.height - waveHeight
@@ -433,6 +472,9 @@ open class DGElasticPullToRefreshView: UIView {
             }
             
             shapeLayer.frame = CGRect(x: 0.0, y: 0.0, width: width, height: height)
+            if height != 0 {
+                gradientLayer.frame = shapeLayer.frame
+            }
             shapeLayer.path = currentPath()
             
             layoutLoadingView()

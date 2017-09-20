@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "CA22995E16ADB940ED328330E7D37E4BEB09C583",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "2BC23CD2172DAED75D3BB149C6F38C78CC14F5C3" : 9223372036854775807,
+    "CA22995E16ADB940ED328330E7D37E4BEB09C583" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "192B58E4-F490-4407-819D-6DDEACA30F5F",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "2BC23CD2172DAED75D3BB149C6F38C78CC14F5C3" : "..\/..",
+    "CA22995E16ADB940ED328330E7D37E4BEB09C583" : "DGElasticPullToRefresh\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "DGElasticPullToRefreshExample",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "DGElasticPullToRefreshExample.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "git.oschina.net:flyc\/MyCarthage.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "2BC23CD2172DAED75D3BB149C6F38C78CC14F5C3"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:fcgeek\/DGElasticPullToRefresh.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "CA22995E16ADB940ED328330E7D37E4BEB09C583"
+    }
+  ]
+}
